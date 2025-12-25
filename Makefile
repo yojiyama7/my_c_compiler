@@ -1,7 +1,10 @@
-CC := cc
-CFLAGS := -std=c11 -Wall -Wextra -Werror -Wimplicit-fallthrough -g -static
+CC      := cc
+CFLAGS  := -std=c11 -Wall -Wextra -Werror -Wimplicit-fallthrough -g -static
+LDFLAGS := 
 NAME := mycc
-SRCS := main.c
+SRCS := main.c \
+        parse.c \
+        codegen.c
 OBJS := $(SRCS:.c=.o)
 
 .PHONY: all
@@ -25,7 +28,9 @@ test: $(NAME)
 	./test.sh
 
 $(NAME): $(OBJS)
-	$(CC) $(CFLAGS) -o $(NAME) $(OBJS)
+	$(CC) $(CFLAGS) -o $(NAME) $(OBJS) $(LDFLAGS)
+
+$(OBJS): mycc.h
 
 %.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $<
