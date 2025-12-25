@@ -89,8 +89,10 @@ Token *tokenize(char *p) {
     }
 	if ('a' <= *p && *p <= 'z') {
 		cur = new_token(TK_IDENT, cur, p);
-		cur->len = 1;
-		p++;
+    while ('a' <= *p && *p <= 'z') {
+      p++;
+    }
+		cur->len = p - cur->str;
 		continue;
 	}
     if (isdigit(*p)) {
@@ -123,6 +125,25 @@ Node *new_node_num(int val) {
   return node;
 }
 
+typedef struct s_LVar LVar;
+struct s_LVar {
+  LVar *next;
+  char *name;
+  int len;
+  int offset;
+};
+
+LVar *locals;
+
+LVar *find_lvar(Token *tok) {
+  for (LVar *var = locals; var; var = var->next) {
+    if (var->len == tok->len && memcmp(tok->str, var->name, var->len) == 0) {
+      return var;
+    }
+  }
+  return NULL;
+}
+
 Node *primary(void) {
   if (consume("(")) {
     Node *node = expr();
@@ -133,7 +154,23 @@ Node *primary(void) {
   if (tok) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = NK_LVAR;
-    node->offset = (tok->str[0] - 'a' + 1) * 8;
+
+    LVar *lvar = find_lvar(tok);
+    if (lvar) {
+      node->offset = lvar->offset;
+    } else {
+      lvar = calloc(1, sizeof(LVar));
+      lvar->next = locals;
+      lvar->name = tok->str;
+      lvar->len = tok->len;
+      if (locals == NULL) { // XXX: localsがNULLになっているかもしれないのいやだね
+        lvar->offset = 0;
+      } else {
+        lvar->offset = locals->offset + 8;
+      }
+      node->offset = lvar->offset;
+      locals = lvar;
+    }
     return node;
   }
 

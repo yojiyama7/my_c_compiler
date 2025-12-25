@@ -18,7 +18,7 @@ assert() {
   fi
 }
 
-# make && ./mycc "a = 1 + 2; a + 4;" > tmp.s
+# make && ./mycc "aa = 42;" > tmp.s
 # cc -z noexecstack -o tmp tmp.s
 # ./tmp
 # echo $?
@@ -41,7 +41,8 @@ assert 1 "(0 == (0 + 3)) == 0;"
 assert 3 "a = 3;"
 assert 30 "a = 3; b = 5; (a + 3) * b;"
 assert 42 "\
-a = 1;
+foo = 1;
 z = 1;
-z - a + 42;"
+z - foo + 42;"
+assert 14 "foo = 1; bar = 2; baz = 3; xxx = 4; baz * xxx + foo * bar;"
 echo OK
