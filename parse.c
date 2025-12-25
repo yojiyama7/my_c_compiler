@@ -2,19 +2,7 @@
 
 Token *token;
 char *user_input;
-
-void error_at(char *loc, char *fmt, ...) {
-  va_list ap;
-  va_start(ap, fmt);
-
-  int pos = loc - user_input;
-  fprintf(stderr, "%s\n", user_input);
-  fprintf(stderr, "%*s", pos, " ");
-  fprintf(stderr, "^ ");
-  vfprintf(stderr, fmt, ap);
-  fprintf(stderr, "\n");
-  exit(1);
-}
+Node *code[100];
 
 bool consume(char *op) {
   if (token->kind != TK_RESERVED ||
@@ -24,6 +12,15 @@ bool consume(char *op) {
   }
   token = token->next;
   return true;
+}
+
+Token *consume_ident(void) {
+  if (token->kind != TK_IDENT) {
+    return NULL;
+  }
+  Token *tok = token;
+  token = token->next;
+  return tok;
 }
 
 void expect(char *op) {
@@ -82,12 +79,20 @@ Token *tokenize(char *p) {
         *p == '(' ||
         *p == ')' ||
         *p == '<' ||
-        *p == '>' ) {
+        *p == '>' ||
+        *p == '=' ||
+        *p == ';' ) {
       cur = new_token(TK_RESERVED, cur, p);
       cur->len = 1;
       p++;
       continue;
     }
+	if ('a' <= *p && *p <= 'z') {
+		cur = new_token(TK_IDENT, cur, p);
+		cur->len = 1;
+		p++;
+		continue;
+	}
     if (isdigit(*p)) {
       cur = new_token(TK_NUM, cur, p);
       cur->val = strtol(p, &p, 10);
@@ -122,6 +127,13 @@ Node *primary(void) {
   if (consume("(")) {
     Node *node = expr();
     expect(")");
+    return node;
+  }
+  Token *tok = consume_ident();
+  if (tok) {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = NK_LVAR;
+    node->offset = (tok->str[0] - 'a' + 1) * 8;
     return node;
   }
 
@@ -193,6 +205,36 @@ Node *equality(void) {
   return node;
 }
 
+Node *assign(void) {
+  Node *node = equality();
+
+  if (consume("=")) {
+    return new_node(NK_ASSIGN, node, assign());
+  }
+
+  return node;
+}
+
 Node *expr(void) {
-  return equality();
+  return assign();
+}
+
+Node *stmt(void) {
+  Node *node = assign();
+
+  expect(";");
+
+  return node;
+}
+
+void program(void) {
+  int i = 0;
+  
+  while (!at_eof()) {
+    code[i++] = stmt();
+    if (i >= 100) {
+      error_at(token->str, "コードが多すぎます");
+    }
+  }
+  code[i] = NULL;
 }
