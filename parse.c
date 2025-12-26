@@ -286,6 +286,7 @@ Node *expr(void) {
 Node *stmt(void) {
   Node *node;
   
+  // IF, IFELSE
   if (consume_keyword("if")) {
     node = calloc(1, sizeof(Node));
     node->kind = NK_IF;
@@ -293,13 +294,41 @@ Node *stmt(void) {
     node->cond = expr();
     expect(")");
     node->then = stmt();
+    // IFELSE
     if (consume_keyword("else")) {
+      node->kind = NK_IFELSE;
       node->els = stmt();
     }
     return node;
   }
-
+  if (consume_keyword("while")) {
+    node = calloc(1, sizeof(Node));
+    node->kind = NK_WHILE;
+    expect("(");
+    node->cond = expr();
+    expect(")");
+    node->body = stmt();
+    return node;
+  }
+  if (consume_keyword("for")) {
+    node = calloc(1, sizeof(Node));
+    node->kind = NK_FOR;
+    expect("(");
+    if (!consume(";")) {
+      node->init = expr();
+      expect(";");
+    }
+    if (!consume(";")) {
+      node->cond = expr();
+      expect(";");
+    }
+    node->inc = expr();
+    expect(")");
+    node->body = stmt();
+    return node;
+  }
   if (consume_keyword("return")) {
+    // RETURN
     node = calloc(1, sizeof(Node));
     node->kind = NK_RETURN;
     node->lhs = expr();

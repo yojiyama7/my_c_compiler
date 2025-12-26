@@ -1,6 +1,6 @@
 #include "mycc.h"
 
-int label_idx;
+int stmt_id;
 
 // nodeの持つoffsetが指し示す変数のアドレスをスタックにpushする
 void gen_lval(Node *node) {
@@ -14,6 +14,7 @@ void gen_lval(Node *node) {
 }
 
 void gen(Node *node) {
+  int sid;
   switch (node->kind) {
   case NK_NUM:
     printf("  push %d\n", node->val);
@@ -42,12 +43,49 @@ void gen(Node *node) {
     printf("  ret\n");
     return ;
   case NK_IF:
+    sid = stmt_id++;
     gen(node->cond);
     printf("  pop rax\n");
     printf("  cmp rax, 0\n");
-    printf("  je .Lend%d\n", label_idx);
+    printf("  je .Lend%d\n", sid);
     gen(node->then);
-    printf(".Lend%d:\n", label_idx++);
+    printf(".Lend%d:\n", sid);
+    return ;
+  case NK_IFELSE:
+    sid = stmt_id++;
+    gen(node->cond);
+    printf("  pop rax\n");
+    printf("  cmp rax, 0\n");
+    printf("  je .Lelse%d\n", sid);
+    gen(node->then);
+    printf("  jmp .Lend%d\n", sid);
+    printf(".Lelse%d:\n", sid);
+    gen(node->els);
+    printf(".Lend%d:\n", sid);
+    return ;
+  case NK_WHILE:
+    sid = stmt_id++;
+    printf(".Lbegin%d:\n", sid);
+    gen(node->cond);
+    printf("  pop rax\n");
+    printf("  cmp rax, 0\n");
+    printf("  je  .Lend%d\n", sid);
+    gen(node->body);
+    printf("  jmp .Lbegin%d\n", sid);
+    printf(".Lend%d:\n", sid);
+    return;
+  case NK_FOR:
+    sid = stmt_id++;
+    gen(node->init);
+    printf(".Lbegin%d:\n", sid);
+    gen(node->cond);
+    printf("  pop rax\n");
+    printf("  cmp rax, 0\n");
+    printf("  je  .Lend%d\n", sid);
+    gen(node->body);
+    gen(node->inc);
+    printf("  jmp .Lbegin%d\n", sid);
+    printf(".Lend%d:\n", sid);
     return ;
   default:
     break;

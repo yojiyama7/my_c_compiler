@@ -19,7 +19,10 @@ assert() {
 }
 
 # make && ./mycc "\
-# if ( 1 == 1 ) return 4; return 3;" > tmp.s
+# for (i = 0; i < 10; i = i + 1)
+#   if (i * i > 30)
+#     return i;
+# return 42;" > tmp.s
 # cc -z noexecstack -o tmp tmp.s
 # ./tmp
 # echo $?
@@ -59,4 +62,35 @@ assert 3 "\
 if ( 1 == 0 )
   return 4;
 return 3;"
+assert 5 "\
+if ( 1 == 0 )
+  return 1;
+if ( 1 == 0 )
+  return 2;
+if ( 1 == 0 )
+  return 3;
+if ( 1 == 0 )
+  return 4;
+return 5;"
+assert 5 "\
+if (1 == 0)
+  return 3;
+else
+  return 5;"
+assert 3 "\
+if (1 != 0)
+  return 3;
+else
+  return 5;"
+assert 55 "\
+a = 0;
+b = 0;
+while (a < 10)
+  b = b + (a = a + 1);
+return b;"
+assert 6 "\
+for (i = 0; i < 10; i = i + 1)
+  if (i * i > 30)
+    return i;
+return 42;"
 echo OK

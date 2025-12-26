@@ -44,6 +44,7 @@ typedef enum {
   NK_NUM,
   NK_RETURN,
   NK_IF,
+  NK_IFELSE,
   NK_FOR,
   NK_WHILE,
 } NodeKind;
@@ -56,9 +57,12 @@ struct s_Node {
   int val;    // kindがND_NUMの場合のみ使う
   int offset; // kindがND_LVARの場合のみ使う
 
-  Node *cond;
-  Node *then;
-  Node *els;
+  Node *cond; // 条件
+  Node *then; // IF, IFELSE
+  Node *els;  // IFELSE
+  Node *body; // WHILE
+  Node *init;
+  Node *inc;
 };
 
 extern Token *token;
