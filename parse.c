@@ -15,7 +15,11 @@ bool consume(char *op) {
 }
 
 bool consume_keyword(char *op) {
-  if (token->kind != TK_RETURN ||
+  if (!(token->kind == TK_RETURN ||
+      token->kind == TK_IF ||
+      token->kind == TK_ELSE ||
+      token->kind == TK_FOR ||
+      token->kind == TK_WHILE) ||
       (int)strlen(op) != token->len ||
       memcmp(op, token->str, token->len) != 0) {
     return false;
@@ -97,16 +101,24 @@ Token *tokenize(char *p) {
       p++;
       continue;
     }
-    if ('a' <= *p && *p <= 'z') {
+    if (isalpha(*p) || *p == '_') {
       // IDENT or KEYWORD
       cur = new_token(TK_IDENT, cur, p);
-      while ('a' <= *p && *p <= 'z') {
+      while (isalnum(*p) || *p == '_') {
         p++;
       }
       cur->len = p - cur->str;
       // KEYWORD なら kind を上書き
       if (cur->len == 6 && memcmp(cur->str, "return", 6) == 0) {
         cur->kind = TK_RETURN;
+      } else if (cur->len == 2 && memcmp(cur->str, "if", 2) == 0) {
+        cur->kind = TK_IF;
+      } else if (cur->len == 4 && memcmp(cur->str, "else", 4) == 0) {
+        cur->kind = TK_ELSE;
+      } else if (cur->len == 3 && memcmp(cur->str, "for", 3) == 0) {
+        cur->kind = TK_FOR;
+      } else if (cur->len == 5 && memcmp(cur->str, "while", 5) == 0) {
+        cur->kind = TK_WHILE;
       }
       continue;
     }
@@ -274,6 +286,19 @@ Node *expr(void) {
 Node *stmt(void) {
   Node *node;
   
+  if (consume_keyword("if")) {
+    node = calloc(1, sizeof(Node));
+    node->kind = NK_IF;
+    expect("(");
+    node->cond = expr();
+    expect(")");
+    node->then = stmt();
+    if (consume_keyword("else")) {
+      node->els = stmt();
+    }
+    return node;
+  }
+
   if (consume_keyword("return")) {
     node = calloc(1, sizeof(Node));
     node->kind = NK_RETURN;
@@ -281,11 +306,7 @@ Node *stmt(void) {
   } else {
     node = expr();
   }
-
-  if (!consume(";")) {
-    error_at(token->str, "';'ではないトークン");
-  }
-
+  expect(";");
   return node;
 }
 

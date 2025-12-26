@@ -1,5 +1,7 @@
 #include "mycc.h"
 
+int label_idx;
+
 // nodeの持つoffsetが指し示す変数のアドレスをスタックにpushする
 void gen_lval(Node *node) {
   if (node->kind != NK_LVAR) {
@@ -38,6 +40,14 @@ void gen(Node *node) {
     printf("  mov rsp, rbp\n");
     printf("  pop rbp\n");
     printf("  ret\n");
+    return ;
+  case NK_IF:
+    gen(node->cond);
+    printf("  pop rax\n");
+    printf("  cmp rax, 0\n");
+    printf("  je .Lend%d\n", label_idx);
+    gen(node->then);
+    printf(".Lend%d:\n", label_idx++);
     return ;
   default:
     break;

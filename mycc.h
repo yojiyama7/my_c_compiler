@@ -10,6 +10,10 @@
 typedef enum {
   TK_RESERVED,
   TK_RETURN,
+  TK_IF,
+  TK_ELSE,
+  TK_FOR,
+  TK_WHILE,
   TK_IDENT,
   TK_NUM,
   TK_EOF,
@@ -39,6 +43,9 @@ typedef enum {
   NK_LVAR,
   NK_NUM,
   NK_RETURN,
+  NK_IF,
+  NK_FOR,
+  NK_WHILE,
 } NodeKind;
 
 typedef struct s_Node Node;
@@ -48,6 +55,10 @@ struct s_Node {
   Node *rhs;
   int val;    // kindがND_NUMの場合のみ使う
   int offset; // kindがND_LVARの場合のみ使う
+
+  Node *cond;
+  Node *then;
+  Node *els;
 };
 
 extern Token *token;

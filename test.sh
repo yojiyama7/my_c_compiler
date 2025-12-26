@@ -18,10 +18,13 @@ assert() {
   fi
 }
 
-# make && ./mycc "return 42;" > tmp.s
+# make && ./mycc "\
+# if ( 1 == 1 ) return 4; return 3;" > tmp.s
 # cc -z noexecstack -o tmp tmp.s
 # ./tmp
 # echo $?
+
+# exit
 
 assert 0 "0;"
 assert 42 "42;"
@@ -48,4 +51,12 @@ assert 14 "foo = 1; bar = 2; baz = 3; xxx = 4; baz * xxx + foo * bar;"
 assert 8 "return 8;"
 assert 8 "return 8;\
 return 4;"
+assert 4 "\
+if ( 1 == 1 )
+  return 4;
+return 3;"
+assert 3 "\
+if ( 1 == 0 )
+  return 4;
+return 3;"
 echo OK
