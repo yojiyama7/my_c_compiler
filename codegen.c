@@ -87,6 +87,14 @@ void gen(Node *node) {
     printf("  jmp .Lbegin%d\n", sid);
     printf(".Lend%d:\n", sid);
     return ;
+  case NK_BLOCK:
+    Node *cur = node->body;
+    while (cur) {
+      gen(cur);
+      printf("  pop rax\n");
+      cur = cur->next;
+    }
+    return ;
   default:
     break;
   }

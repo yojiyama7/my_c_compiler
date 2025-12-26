@@ -19,10 +19,7 @@ assert() {
 }
 
 # make && ./mycc "\
-# for (i = 0; i < 10; i = i + 1)
-#   if (i * i > 30)
-#     return i;
-# return 42;" > tmp.s
+# { return 42; }" > tmp.s
 # cc -z noexecstack -o tmp tmp.s
 # ./tmp
 # echo $?
@@ -93,4 +90,11 @@ for (i = 0; i < 10; i = i + 1)
   if (i * i > 30)
     return i;
 return 42;"
+assert 42 "{ return 42; }"
+assert 32 "\
+{
+  a = 4;
+  b = a + 4;
+  return a * b;
+}"
 echo OK

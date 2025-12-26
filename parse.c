@@ -95,7 +95,9 @@ Token *tokenize(char *p) {
         *p == '<' ||
         *p == '>' ||
         *p == '=' ||
-        *p == ';' ) {
+        *p == ';' ||
+        *p == '{' ||
+        *p == '}' ) {
       cur = new_token(TK_RESERVED, cur, p);
       cur->len = 1;
       p++;
@@ -327,6 +329,19 @@ Node *stmt(void) {
     node->body = stmt();
     return node;
   }
+  if (consume("{")) {
+    node = calloc(1, sizeof(Node));
+    node->kind = NK_BLOCK;
+    Node head;
+    Node *cur = &head;
+    while (!consume("}")) {
+      cur->next = stmt();
+      cur = cur->next;
+    }
+    node->body = head.next;
+    return node;
+  }
+
   if (consume_keyword("return")) {
     // RETURN
     node = calloc(1, sizeof(Node));
