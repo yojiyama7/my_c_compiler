@@ -121,5 +121,4 @@ assert_with_asset 42 "return foo();"
 assert_with_asset 0 "bar();"
 assert_with_asset 3 "mod4(7);"
 assert_with_asset 0 "potato(1, 2, 3, 4, 5, 6) - 321;"
-
 echo OK

@@ -100,10 +100,11 @@ void gen(Node *node) {
   case NK_CALL:
     char *regs[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
     int i = 0;
+    int stack_bytes = 8;
     cur = node->args;
     while (cur && i < 6) {
-      gen(cur);
-      printf("  pop %s\n", regs[i]);
+      gen(cur);                      // stack_bytes += 8
+      printf("  pop %s\n", regs[i]); // stack_bytes -= 8
       cur = cur->next;
       i++;
     }
@@ -111,7 +112,10 @@ void gen(Node *node) {
     if (cur) {
       error("引数が6つ超過あります");
     }
+    int rsp_offset = 16 - (stack_bytes % 16);
+    printf("  sub rsp, %d\n", rsp_offset);
     printf("  call %.*s\n", node->func_name_len, node->func_name);
+    printf("  add rsp, %d\n", rsp_offset);
     printf("  push rax\n");
     return; 
   default:
